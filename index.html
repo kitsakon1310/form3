@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>มำร้องขอโอนย้ายสาขาวิชาต่างคณะ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+
+<h2 class="text-2xl font-bold mb-4 text-center">คำร้องขอโอนย้ายสาขาวิชาต่างคณะ</h2>
+
+<form id="transferForm" class="bg-white p-6 rounded shadow-md space-y-4 max-w-4xl mx-auto">
+
+  <!-- วันที่และเรื่อง -->
+  <div class="grid md:grid-cols-3 gap-4">
+    <div>
+      <label>วันที่:</label>
+      <input type="date" id="date" class="border p-2 w-full">
+      <span class="text-red-500 text-sm" id="dateError"></span>
+    </div>
+    <div>
+      <label>เรื่อง:</label>
+      <input type="text" id="subject" class="border p-2 w-full" placeholder="เขียนคำร้อง">
+      <span class="text-red-500 text-sm" id="subjectError"></span>
+    </div>
+    <div>
+      <label>เรียน คณบดีคณะ:</label>
+      <input type="text" id="toFaculty" class="border p-2 w-full" placeholder="คณะ">
+      <span class="text-red-500 text-sm" id="toFacultyError"></span>
+    </div>
+  </div>
+
+  <!-- ข้อมูลส่วนตัว -->
+  <fieldset class="border p-4">
+    <legend class="font-bold">ข้อมูลนักศึกษา</legend>
+    <div class="grid md:grid-cols-3 gap-4 mt-2">
+      <div>
+        <label>คำนำหน้า:</label>
+        <select id="prefix" class="border p-2 w-full">
+          <option value="">-- เลือก --</option>
+          <option value="นาย">นาย</option>
+          <option value="นาง">นาง</option>
+          <option value="นางสาว">นางสาว</option>
+        </select>
+        <span class="text-red-500 text-sm" id="prefixError"></span>
+      </div>
+      <div>
+        <label>ชื่อ-นามสกุล:</label>
+        <input type="text" id="fullname" class="border p-2 w-full">
+        <span class="text-red-500 text-sm" id="fullnameError"></span>
+      </div>
+      <div>
+        <label>รหัสนักศึกษา:</label>
+        <input type="text" id="studentId" class="border p-2 w-full">
+        <span class="text-red-500 text-sm" id="studentIdError"></span>
+      </div>
+    </div>
+    <div class="grid md:grid-cols-3 gap-4 mt-2">
+      <div>
+        <label>โทรศัพท์มือถือ:</label>
+        <input type="tel" id="phone" class="border p-2 w-full">
+        <span class="text-red-500 text-sm" id="phoneError"></span>
+      </div>
+      <div>
+        <label>ระบบ:</label>
+        <select id="system" class="border p-2 w-full">
+          <option value="">-- เลือก --</option>
+          <option value="ภาคปกติ">ภาคปกติ</option>
+          <option value="ภาคสมทบ">ภาคสมทบ</option>
+        </select>
+        <span class="text-red-500 text-sm" id="systemError"></span>
+      </div>
+      <div>
+        <label>หลักสูตร:</label>
+        <select id="program" class="border p-2 w-full">
+          <option value="">-- เลือก --</option>
+          <option value="4ปี">4 ปี</option>
+          <option value="4ปีเทียบเข้าเรียน(2ปี)">4 ปีเทียบเข้าเรียน (2 ปี)</option>
+        </select>
+        <span class="text-red-500 text-sm" id="programError"></span>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- เหตุผล -->
+  <div>
+    <label>เหตุผลการโอนย้าย:</label>
+    <textarea id="reason" rows="3" class="border p-2 w-full"></textarea>
+    <span class="text-red-500 text-sm" id="reasonError"></span>
+  </div>
+
+  <!-- ปุ่มส่ง -->
+  <div class="text-center">
+    <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded">ส่งคำร้อง</button>
+  </div>
+</form>
+
+<!-- Modal -->
+<div id="modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+  <div class="bg-white p-6 rounded shadow-md w-96 text-center">
+    <p id="modalMessage" class="mb-4"></p>
+    <button id="closeModal" class="bg-blue-600 text-white px-4 py-2 rounded">ปิด</button>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById("modal");
+  const modalMessage = document.getElementById("modalMessage");
+  const closeModal = document.getElementById("closeModal");
+  closeModal.addEventListener("click", () => modal.classList.add("hidden"));
+
+  document.getElementById("transferForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    let valid = true;
+
+    const fields = [
+      {id: "date", msg: "กรุณาเลือกวันที่"},
+      {id: "subject", msg: "กรุณากรอกเรื่อง"},
+      {id: "toFaculty", msg: "กรุณากรอกชื่อคณะ"},
+      {id: "prefix", msg: "กรุณาเลือกคำนำหน้า"},
+      {id: "fullname", msg: "กรุณากรอกชื่อ-นามสกุล"},
+      {id: "studentId", msg: "กรุณากรอกรหัสนักศึกษา"},
+      {id: "phone", msg: "กรุณากรอกเบอร์โทรศัพท์"},
+      {id: "system", msg: "กรุณาเลือกระบบ"},
+      {id: "program", msg: "กรุณาเลือกหลักสูตร"},
+      {id: "reason", msg: "กรุณากรอกเหตุผล"}
+    ];
+
+    fields.forEach(f => {
+      document.getElementById(f.id + "Error").textContent = "";
+      const value = document.getElementById(f.id).value.trim();
+      if(value === ""){
+        document.getElementById(f.id + "Error").textContent = f.msg;
+        valid = false;
+      }
+    });
+
+    if(valid){
+      // ตรวจสอบเบอร์โทร
+      const phone = document.getElementById("phone").value.trim();
+      if(!/^0\d{9}$/.test(phone)){
+        document.getElementById("phoneError").textContent = "เบอร์โทรต้องเป็นตัวเลข 10 หลัก และขึ้นต้นด้วย 0";
+        return;
+      }
+      modalMessage.textContent = "ส่งคำร้องขอโอนย้ายสำเร็จ";
+      modal.classList.remove("hidden");
+    }
+  });
+</script>
+
+</body>
+</html>
